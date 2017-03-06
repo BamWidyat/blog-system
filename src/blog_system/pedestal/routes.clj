@@ -2,7 +2,9 @@
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
             [io.pedestal.http.body-params :as body-params]
-            [ring.util.response :as ring-resp]))
+            [ring.util.response :as ring-resp]
+            [hiccup.core :as hc]
+            [blog-system.pedestal.html :as html]))
 
 (defn about-page
   [request]
@@ -12,7 +14,7 @@
 
 (defn home-page
   [request]
-  (ring-resp/response "kaebfueiwnfiwef"))
+  (ring-resp/response (html/make-html 1 "Home" (html/home-content []))))
 
 (def middlewares
   [(body-params/body-params) http/html-body])
