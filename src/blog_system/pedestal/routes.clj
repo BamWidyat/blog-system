@@ -4,7 +4,8 @@
             [io.pedestal.http.body-params :as body-params]
             [ring.util.response :as ring-resp]
             [hiccup.core :as hc]
-            [blog-system.pedestal.html :as html]))
+            [blog-system.pedestal.html :as html]
+            [io.pedestal.interceptor :refer [interceptor]]))
 
 (defn about-page
   [request]
@@ -12,9 +13,18 @@
                               (clojure-version)
                               (route/url-for ::about-page))))
 
-(defn home-page
+(def home-page
+  (interceptor
+   {:name ::home-page
+    :enter (fn [context]
+             (assoc
+              context :response
+              {:status 200 :body (str (-> context :datomic :uri))}))}))
+
+#_(defn home-page
   [request]
-  (ring-resp/response (html/make-html 1 "Home" (html/home-content []))))
+  (ring-resp/response
+   #_(html/make-html 1 "Home" (html/home-content []))))
 
 (def middlewares
   [(body-params/body-params) http/html-body])

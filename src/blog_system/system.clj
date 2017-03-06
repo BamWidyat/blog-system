@@ -10,4 +10,6 @@
    :config config
    :mycomponent {:my :component}
    :datomic (datomic/make (-> config :datomic))
-   :pedestal (pedestal/make)))
+   :pedestal (component/using
+              (pedestal/make)
+              [:datomic :mycomponent])))
