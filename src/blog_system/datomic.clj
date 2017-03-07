@@ -6,10 +6,8 @@
 (defrecord Datomic [uri]
   component/Lifecycle
   (start [this]
-    (println "test datomic print start")
     this)
   (stop [this]
-    (println "test datomic print stop")
     this))
 
 (defn make

@@ -7,10 +7,12 @@
 
 (defonce dev-system nil)
 
+(def uri "datomic:mem://blog")
+
 (defn dev-config
   "return development configuration map"
   []
-  {:datomic {:uri "datomic:mem://blog"}})
+  {:datomic {:uri uri}})
 
 (defn start []
   (alter-var-root #'dev-system component/start))
@@ -38,9 +40,35 @@
     :db/valueType :db.type/instant
     :db/cardinality :db.cardinality/one}])
 
-(defn prepare-database []
-  (d/create-database "datomic:mem://blog")
-  (d/transact (d/connect "datomic:mem://blog")))
+
+(defn take-database-id []
+  (d/q '[:find ?id
+              :where
+              [?e :post/id ?id]]
+            (d/db (d/connect uri))))
+
+(defn take-database []
+  (d/q '[:find ?id ?title ?content ?time
+              :where
+              [?e :post/title ?title]
+              [?e :post/id ?id]
+              [?e :post/content ?content]
+              [?e :post/time ?time]]
+            (d/db (d/connect uri))))
+
+(defn take-post-by-id [id]
+  (d/q '[:find ?id ?title ?content ?time
+              :in $ ?id
+              :where
+              [?e :post/id ?id]
+              [?e :post/title ?title]
+              [?e :post/content ?content]
+              [?e :post/time ?time]]
+            (d/db (d/connect uri)) id))
+
+(defn go-db []
+  (d/create-database uri)
+  (d/transact (d/connect uri) schema))
 
 (defn go []
   (init)
