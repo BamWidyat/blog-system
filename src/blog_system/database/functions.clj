@@ -28,3 +28,16 @@
               [?e :post/time ?time]]
             (d/db (d/connect uri)) id))
 
+(defn edit-post-database [uri id title content]
+  (d/transact
+   (d/connect uri)
+   [[:db/add [:post/id id]
+     :post/title title]
+    [:db/add [:post/id id]
+     :post/content content]]))
+
+(defn delete-post-database [uri id]
+  (d/transact
+   (d/connect uri)
+   [[:db.fn/retractEntity [:post/id id]]]))
+

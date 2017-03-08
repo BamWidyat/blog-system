@@ -126,3 +126,28 @@
        [:a {:href (str "/post/" id) :class "btn btn-primary"} "Cancel"]
        [:button {:type "reset" :class "btn btn-primary"} "Reset"]
        [:button {:type "submit" :class "btn btn-primary"} "Edit"]]]]]])
+
+(def edit-ok-content
+  [[:div {:class "container-fluid"}
+    [:div {:class "alert alert-success"}
+     [:strong "Congratulations!"] " Your post successfully edited!"]
+    [:div {:class "text-center"}
+     [:a {:href "/" :class "btn btn-primary"} "Home"]]]])
+
+(defn delete-confirm-content [postid]
+  [[:div {:class "container-fluid"}
+    [:div {:class "alert alert-warning"} [:strong (str "You are about to delete this post!")]
+     " Deleted post cannot be recovered, are you sure you delete this post?"]
+    [:br][:br]
+    [:div {:class "text-center"}
+     [:form {:action (str "/delete-ok/" postid) :method "post"}
+      [:a {:href (str "/post/" postid) :class "btn btn-default"} "Cancel"]
+      "     "
+      [:button {:type "submit" :class "btn btn-primary"} "Yes"]]]]])
+
+(def delete-ok-content
+  [[:div {:class "container-fluid"}
+    [:div {:class "alert alert-success"} [:strong "Congratulations!"] " Your post successfully deleted!"]
+    [:br][:br]
+    [:div {:class "text-center"}
+     [:a {:href "/" :class "btn btn-primary"} "Go to Home"]]]])

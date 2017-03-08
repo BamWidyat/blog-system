@@ -66,6 +66,11 @@
               [?e :post/time ?time]]
             (d/db (d/connect uri)) id))
 
+(defn delete-post-database [id]
+  (d/transact
+   (d/connect uri)
+   [[:db.fn/retractEntity [:post/id id]]]))
+
 (defn go-db []
   (d/create-database uri)
   (d/transact (d/connect uri) schema))
