@@ -6,7 +6,9 @@
    [clojure.edn :as edn]
    [datomic.api :as d]))
 
-(def config (edn/read-string (slurp "config.edn")))
+(defn config
+  []
+  (edn/read-string (slurp "config.edn")))
 
 (def uri (-> config :datomic :uri))
 
@@ -26,6 +28,7 @@
     :db/cardinality :db.cardinality/one}])
 
 (defn start-db []
+  (println "Starting database . . .")
   (d/create-database uri)
   (d/transact (d/connect uri) schema))
 
@@ -33,4 +36,4 @@
   [& args]
   (let [main-config config]
     (start-db)
-    (component/start (system/system config))))
+    (component/start (system/system (config)))))
