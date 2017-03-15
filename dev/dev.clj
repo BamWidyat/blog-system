@@ -3,7 +3,8 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.namespace.repl :as ns-repl]
    [datomic.api :as d]
-   [blog-system.system :as system]))
+   [blog-system.system :as system]
+   [clojure.edn :as edn]))
 
 (defonce dev-system nil)
 
@@ -12,7 +13,7 @@
 (defn dev-config
   "return development configuration map"
   []
-  {:datomic {:uri uri}})
+  (edn/read-string (slurp "config.edn")))
 
 (defn start []
   (alter-var-root #'dev-system component/start))

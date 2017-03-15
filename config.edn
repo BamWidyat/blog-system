@@ -1,1 +1,2 @@
-{:datomic {:uri "datomic:mem://blog"}}
+{:datomic {:uri "datomic:mem://blog"}
+ :pedestal-service {:port 8888}}

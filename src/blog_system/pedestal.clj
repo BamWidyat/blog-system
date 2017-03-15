@@ -22,15 +22,15 @@
                  (update r 2 #(into [component-injection-interceptor] %)))))))
 
 (defn service
-  [datomic mycomponent]
+  [datomic mycomponent port]
   {:env :dev
    ::http/routes (table/table-routes {} (make-routes datomic mycomponent))
    ::http/resource-path "/public"
    ::http/type :jetty
    ::http/join? false
-   ::http/port 8080})
+   ::http/port port})
 
-(defrecord Pedestal [runnable-service datomic mycomponent]
+(defrecord Pedestal [runnable-service datomic mycomponent port]
   component/Lifecycle
   (start [this]
     (if runnable-service
@@ -39,7 +39,7 @@
         this)
       (do
         (println "creating server")
-        (let [server-inst (http/create-server (service datomic mycomponent))]
+        (let [server-inst (http/create-server (service datomic mycomponent port))]
           (http/start server-inst)
           (assoc this :runnable-service server-inst)))))
   (stop [this]
@@ -52,5 +52,5 @@
   )
 
 (defn make
-  []
-  (map->Pedestal {}))
+  [{:keys [port]}]
+  (map->Pedestal {:port port}))

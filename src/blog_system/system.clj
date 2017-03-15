@@ -11,5 +11,5 @@
    :mycomponent {:my :component}
    :datomic (datomic/make (-> config :datomic))
    :pedestal (component/using
-              (pedestal/make)
+              (pedestal/make (-> config :pedestal-service))
               [:datomic :mycomponent])))

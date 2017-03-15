@@ -10,7 +10,7 @@
   []
   (edn/read-string (slurp "config.edn")))
 
-(def uri (-> config :datomic :uri))
+(defn uri [] (-> (config) :datomic :uri))
 
 (def schema
   [{:db/ident :post/id
@@ -29,8 +29,8 @@
 
 (defn start-db []
   (println "Starting database . . .")
-  (d/create-database uri)
-  (d/transact (d/connect uri) schema))
+  (d/create-database (uri))
+  (d/transact (d/connect (uri)) schema))
 
 (defn -main
   [& args]
