@@ -19,7 +19,7 @@
                  [org.slf4j/slf4j-simple "1.7.21"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [com.stuartsierra/component "0.3.2"]
-                 [com.datomic/datomic-pro "0.9.5561"]
+                 [com.datomic/datomic-free "0.9.5561"]
                  [hiccup "1.0.5"]]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources"]
