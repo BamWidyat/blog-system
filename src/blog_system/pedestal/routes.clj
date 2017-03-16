@@ -6,7 +6,8 @@
             [hiccup.core :as hc]
             [blog-system.pedestal.html :as html]
             [io.pedestal.interceptor :refer [interceptor]]
-            [blog-system.database.functions :as db.f]))
+            [blog-system.database.functions :as db.f]
+            [datomic.api :as d]))
 
 (defn about-page
   [request]
@@ -34,19 +35,25 @@
                (ring-resp/response
                 (html/make-html 0 "Create New Post" html/new-post-content))))}))
 
-(def post-ok
+(def post-result
   (interceptor
-   {:name ::post-ok
+   {:name ::post-result
     :enter
     (fn [context]
       (let [title (-> context :request :form-params :title)
             content (-> context :request :form-params :content)
-            uri (-> context :datomic :uri)]
-        (db.f/create-post-database uri title content)
-        (assoc
+            uri (-> context :datomic :uri)
+            id (d/squuid)]
+        (db.f/create-post-database uri id title content)
+        (if (empty? (db.f/take-post-by-id uri id))
+          (assoc
           context :response
           (ring-resp/response
-           (html/make-html 0 "Post Successfully Created" html/post-ok-content)))))}))
+           (html/make-html 0 "Failed to Create Post" html/post-failed-content)))
+          (assoc
+          context :response
+          (ring-resp/response
+           (html/make-html 0 "Post Successfully Created" html/post-ok-content))))))}))
 
 (def view-post
   (interceptor
@@ -132,7 +139,7 @@
   #{["/" :get [home-page] :route-name :home-page]
     ["/about" :get [about-page] :route-name :about]
     ["/new" :get [new-post] :route-name :new-post]
-    ["/ok" :post [post-ok] :route-name :post-ok]
+    ["/result" :post [post-result] :route-name :post-result]
     ["/post/:postid" :get [view-post] :route-name :view-post]
     ["/edit/:postid" :get [edit-post] :route-name :edit-post]
     ["/edit-ok/:postid" :post [edit-ok] :route-name :edit-ok]

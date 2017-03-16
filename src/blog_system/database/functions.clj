@@ -1,10 +1,10 @@
 (ns blog-system.database.functions
   (:require [datomic.api :as d]))
 
-(defn create-post-database [uri title content]
+(defn create-post-database [uri id title content]
   (d/transact
    (d/connect uri)
-   [{:post/id (d/squuid)
+   [{:post/id id
      :post/title (str title)
      :post/content (str content)
      :post/time (new java.util.Date)}]))

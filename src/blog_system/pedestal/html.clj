@@ -74,7 +74,7 @@
   [[:div {:align "center"}
     [:h1 "Create New Post"]]
    [:div {:class "container"}
-    [:form {:action "/ok" :method "post" :id "input-form"}
+    [:form {:action "/result" :method "post" :id "input-form"}
      [:div {:class "form-group"}
       [:label {:for "title"} "Title"]
       [:input {:type "text" :class "form-control" :id "title" :name "title" :required ""}]]
@@ -91,6 +91,16 @@
   [[:div {:class "container-fluid"}
     [:div {:class "alert alert-success"}
      [:strong "Congratulations!"] " Your post successfully created!"]
+    [:div {:class "text-center"}
+     [:div {:class "btn-group"}
+      [:a {:href "/new" :class "btn btn-primary"} "New Post"]
+      [:a {:href "/" :class "btn btn-primary"} "Home"]]]]])
+
+(def post-failed-content
+  [[:div {:class "container-fluid"}
+    [:div {:class "alert alert-danger"}
+     [:strong "Failed!"] " An error has occured that makes your post failed to be created.
+     Please try again in a few minutes or contact administrator if the problem presist."]
     [:div {:class "text-center"}
      [:div {:class "btn-group"}
       [:a {:href "/new" :class "btn btn-primary"} "New Post"]
