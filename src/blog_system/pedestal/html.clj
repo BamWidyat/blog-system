@@ -28,7 +28,7 @@
        [:li [:a {:href "/"} "Home"]])
      [:li [:a {:href "/"} "About"]]]
     [:ul {:class "nav navbar-nav navbar-right"}
-     [:li [:a {:href "#"} [:span {:class "glyphicon glyphicon-user"}] " Sign Up"]]
+     [:li [:a {:href "/signup"} [:span {:class "glyphicon glyphicon-user"}] " Sign Up"]]
      [:li [:a {:href "#"} [:span {:class "glyphicon glyphicon-log-in"}] " Login"]]]]])
 
 (defn make-html [nav-val title [& content]]
@@ -89,6 +89,38 @@
      [:div {:class "form-group"}
       [:label {:for "content"} "Content"]
       [:textarea {:class "form-control" :rows "20" :id "content" :name "content" :required ""}]]
+     [:div {:class "text-center"}
+      [:div {:class "btn-group"}
+       [:a {:href "/" :class "btn btn-primary"} "Cancel"]
+       [:button {:type "reset" :class "btn btn-primary"} "Reset"]
+       [:button {:type "submit" :class "btn btn-primary"} "Submit"]]]]]])
+
+(defn user-signup-content [error]
+  [[:div {:align "center"}
+    [:h1 "New User Signup"]]
+   [:div {:class "container"}
+    (cond
+      (= error "username-short") [:div {:class "alert alert-warning"} "Username you used is too short"]
+      (= error "username-long") [:div {:class "alert alert-warning"} "Username you used is too long"]
+      (= error "password-short") [:div {:class "alert alert-warning"} "Password you used is too short"]
+      (= error "password-miss") [:div {:class "alert alert-warning"} "Password you type doesn't match"]
+      :else "")
+    [:form {:class "form-horizontal" :action "/signup" :method "post" :id "signup-form"}
+     [:div {:class "form-group"}
+      [:label {:class "control-label col-sm-2" :for "username"} "Username"]
+      [:div {:class "col-sm-10"}
+      [:input {:type "text" :class "form-control" :id "username" :name "username" :required ""}]
+       [:h6 [:small "Username must be 4-16 characters long"]]]]
+     [:div {:class "form-group"}
+      [:label {:class "control-label col-sm-2" :for "password"} "Password"]
+      [:div {:class "col-sm-10"}
+      [:input {:type "password" :class "form-control" :id "password" :name "password" :required ""}]
+       [:h6 [:small "Password must be at least 6 characters long"]]]]
+     [:div {:class "form-group"}
+      [:label {:class "control-label col-sm-2" :for "re-password"} "Re-Type Password"]
+      [:div {:class "col-sm-10"}
+      [:input {:type "password" :class "form-control" :id "re-password" :name "re-password" :required ""}]
+       [:h6 [:small "The password you type must match the one above"]]]]
      [:div {:class "text-center"}
       [:div {:class "btn-group"}
        [:a {:href "/" :class "btn btn-primary"} "Cancel"]
