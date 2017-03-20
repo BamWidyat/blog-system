@@ -20,7 +20,8 @@
                  [org.clojure/tools.namespace "0.2.11"]
                  [com.stuartsierra/component "0.3.2"]
                  [com.datomic/datomic-free "0.9.5561"]
-                 [hiccup "1.0.5"]]
+                 [hiccup "1.0.5"]
+                 [buddy/buddy-hashers "1.2.0"]]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources"]
   ;; If you use HTTP/2 or ALPN, use the java-agent to pull in the correct alpn-boot dependency

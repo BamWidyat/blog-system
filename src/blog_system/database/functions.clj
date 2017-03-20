@@ -1,5 +1,7 @@
 (ns blog-system.database.functions
-  (:require [datomic.api :as d]))
+  (:require
+   [datomic.api :as d]
+   [buddy.hashers :as h]))
 
 (defn create-post-database [uri id title content]
   (d/transact
@@ -8,6 +10,12 @@
      :post/title (str title)
      :post/content (str content)
      :post/time (new java.util.Date)}]))
+
+(defn user-signup [uri username password]
+  (d/transact
+   (d/connect uri)
+   [{:user/name username
+     :user/password (h/derive password)}]))
 
 (defn take-database [uri]
   (d/q '[:find ?time ?id ?title ?content
