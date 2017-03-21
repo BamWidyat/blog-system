@@ -21,11 +21,12 @@
    {:name ::home-page
     :enter (fn [context]
              (let [uri (-> context :datomic :uri)
-                   data (->> (db.f/take-database uri) (into []) sort)]
+                   data (->> (db.f/take-database uri) sort)
+                   session (-> context :request :session)]
                (assoc
                  context :response
                  (ring-resp/response
-                  (html/make-html 1 "Home" (html/home-content data))))))}))
+                  (html/make-html session "Home" (html/home-content data))))))}))
 
 (def new-post
   (interceptor
@@ -43,24 +44,52 @@
              (assoc
                context :response
                (ring-resp/response
-                (html/make-html 0 "New User Signup" (html/user-signup-content "No")))))}))
+                (html/make-html 0 "New User Sign Up" (html/user-signup-content "No")))))}))
 
-(def user-signup-result
+(def user-signup-check
   (interceptor
-   {:name ::user-signup-result
+   {:name ::user-signup-check
     :enter (fn [context]
-             (let [username (-> context :request :form-params :username)
+             (let [uri (-> context :datomic :uri)
+                   username (-> context :request :form-params :username)
                    pass (-> context :request :form-params :password)
-                   re-pass (-> context :request :form-params :re-password)]
-               (assoc
-                 context :response
-                 (ring-resp/response
-                   (cond
-                     (< (count username) 4) (html/make-html 0 "New User Signup" (html/user-signup-content "username-short"))
-                     (> (count username) 16) (html/make-html 0 "New User Signup" (html/user-signup-content "username-long"))
-                     (< (count pass) 6) (html/make-html 0 "New User Signup" (html/user-signup-content "password-short"))
-                     (not= pass re-pass) (html/make-html 0 "New User Signup" (html/user-signup-content "password-miss"))
-                     :else "OK")))))}))
+                   re-pass (-> context :request :form-params :re-password)
+                   response (cond
+                              (< (count username) 4) (html/make-html 0 "New User Signup" (html/user-signup-content "username-short"))
+                              (> (count username) 16) (html/make-html 0 "New User Signup" (html/user-signup-content "username-long"))
+                              (< (count pass) 6) (html/make-html 0 "New User Signup" (html/user-signup-content "password-short"))
+                              (not= pass re-pass) (html/make-html 0 "New User Signup" (html/user-signup-content "password-miss"))
+                              :else "OK")]
+               (if (= response "OK")
+                 (do
+                   (db.f/user-signup uri username pass)
+                   (if (empty? (db.f/take-userdb-by-username uri username))
+                     (assoc context :response (ring-resp/response (html/make-html 0 "Registration Failed!" html/signup-failed-content)))
+                     (assoc context :response (ring-resp/response (html/make-html 0 "Registration Success!" html/signup-ok-content)))))
+                 (assoc context :response (ring-resp/response response)))))}))
+
+(def user-login
+  (interceptor
+   {:name ::user-login
+    :enter (fn [context]
+             (assoc
+               context :response
+               (ring-resp/response
+                (html/make-html 0 "User Login" (html/user-login-content "No")))))}))
+
+(def user-login-check
+  (interceptor
+   {:name ::user-login-check
+    :enter (fn [context]
+             (let [uri (-> context :datomic :uri)
+                   username (-> context :request :form-params :username)
+                   pass (-> context :request :form-params :password)]
+               (if (empty? (db.f/take-userdb-by-username uri username))
+                 (assoc context :response (ring-resp/response (html/make-html 0 "User Login" (html/user-login-content "error"))))
+                 (if (db.f/check-user-password uri username pass)
+                   (assoc context :response (-> (ring-resp/redirect "/")
+                                                (assoc-in [:session :user] username)))
+                   (assoc context :response (ring-resp/response (html/make-html 0 "User Login" (html/user-login-content "error"))))))))}))
 
 (def post-result
   (interceptor
@@ -188,12 +217,20 @@
                     (-> (ring-resp/redirect "/show-session")
                         (assoc-in [:session :counter] nil)))))}))
 
+(def test-page
+  (interceptor
+   {:name ::test-page
+    :enter (fn [context]
+             (assoc context :response (assoc (ring-resp/response (str context)) :session {:user "TEST"})))}))
+
 (def routes
   #{["/" :get [home-page] :route-name :home-page]
     ["/about" :get [about-page] :route-name :about]
     ["/new" :get [new-post] :route-name :new-post]
     ["/signup" :get [user-signup] :route-name :user-signup]
-    ["/signup" :post [user-signup-result] :route-name :user-signup-result]
+    ["/signup" :post [user-signup-check] :route-name :user-signup-check]
+    ["/login" :get [user-login] :route-name :user-login]
+    ["/login" :post [user-login-check] :route-name :user-login-check]
     ["/result" :post [post-result] :route-name :post-result]
     ["/post/:postid" :get [view-post] :route-name :view-post]
     ["/edit/:postid" :get [edit-post] :route-name :edit-post]
@@ -202,6 +239,7 @@
     ["/delete-ok/:postid" :post [delete-ok] :route-name :delete-ok]
     ["/show-session" :get [show-session] :route-name :show-session]
     ["/out-session" :get [out-session] :route-name :log-out]
+    ["/test-page" :get [test-page] :route-name :test-page]
     })
 
 (defn make-routes
