@@ -17,12 +17,11 @@
    [{:user/name username
      :user/password (h/derive password)}]))
 
-(defn take-userdb-by-username [uri username]
-  (d/q '[:find ?username ?password
+(defn check-username-database [uri username]
+  (d/q '[:find ?username
               :in $ ?username
               :where
-              [?e :user/name ?username]
-              [?e :user/password ?password]]
+              [?e :user/name ?username]]
             (d/db (d/connect uri)) username))
 
 (defn check-user-password [uri username password]

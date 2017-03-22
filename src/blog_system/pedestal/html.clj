@@ -15,14 +15,11 @@
     [:div {:class "navbar-header"}
      [:a {:class "navbar-brand" :href "/"} "BlogWeb"]]
     [:ul {:class "nav navbar-nav"}
-     (if (= session 1)
-       [:li {:class "active"} [:a {:href "/"} "Home"]]
-       [:li [:a {:href "/"} "Home"]])
-     [:li [:a {:href "/"} "About"]]]
-    (if (and (not= session {}) (not= session 0))
+     [:li [:a {:href "/post"} [:span {:class "glyphicon glyphicon-th-list"}] " Post"]]]
+    (if (not (empty? session))
       [:ul {:class "nav navbar-nav navbar-right"}
-       [:li [:a {:href "#"} [:span {:class "glyphicon glyphicon-user"}] (str " Welcome, " (session :user))]]
-       [:li [:a {:href "#"} [:span {:class "glyphicon glyphicon-log-out"}] " Logout"]]]
+       [:li [:a {:href "#"} [:span {:class "glyphicon glyphicon-user"}] (str " " (session :user))]]
+       [:li [:a {:href "/logout"} [:span {:class "glyphicon glyphicon-log-out"}] " Logout"]]]
       [:ul {:class "nav navbar-nav navbar-right"}
        [:li [:a {:href "/signup"} [:span {:class "glyphicon glyphicon-user"}] " Sign Up"]]
        [:li [:a {:href "/login"} [:span {:class "glyphicon glyphicon-log-in"}] " Login"]]])]])
@@ -37,27 +34,47 @@
      (navpanel session)
      content]]))
 
-(defn home-content [data]
-   [[:div {:class "jumbotron text-center"}
-    [:h1 "Home Page"]
-    [:p "Welcome to blog test page"]]
+(defn home-content [session]
+   [(if (empty? session)
+      [:div {:class "jumbotron text-center"}
+       [:h1 "Welcome to BlogWeb Home Page"][:br]
+       [:h4 "You can read the Posts on Post tab or you can Sign Up and Login to post something"][:br]
+       [:a {:href "/signup" :class "btn btn-primary"} "Sign Up"]
+       "&nbsp;&nbsp;&nbsp;"
+       [:a {:href "/login" :class "btn btn-primary"} "Login"]]
+      [:div {:class "jumbotron text-center"}
+       [:h1 "Welcome to BlogWeb Home Page"][:br]
+       [:h4 "You can read the Posts or post something on Post tab"][:br]])
+   ])
+
+(defn post-list-content [data session]
+  [[:div {:align "center"}
+    [:h2 "Post List"]]
    [:div {:class "container"}
     (if (empty? data)
-      [:div {:class "container-fluid"}
-       [:div {:class "alert alert-info"}
-        [:div [:strong "You have no post yet!"] " Click the new post button to create a new post"]]]
+      (if (empty? session)
+        [:div {:class "container-fluid"}
+         [:div {:class "alert alert-info"}
+          [:div [:strong "No post yet!"]
+           " You can login and create new post"]]]
+        [:div {:class "container-fluid"}
+         [:div {:class "alert alert-info"}
+          [:div [:strong "No post yet!"]
+           " Click the new post button to create a new post"]]])
       [:div {:class "row"}
        (for [post-data data]
-         [:div {:class "col-sm-4"}
+         [:div {:class "col-sm-12"}
           [:h5 [:small (str "Post ID: " (str (post-data 1)))]]
           [:a {:href (str "/post/" (post-data 1))} [:h3 (post-data 2)]]
           [:h5 [:small (str "Posted at " (post-data 0))]]
           (post-data 3)[:br][:br][:br]])])
-    [:div {:class "text-center"}
-     [:br][:br]
-     [:a {:href "/new"}
-      [:button {:class "btn btn-primary" :type "button"} "New Post"]]
-     [:br][:br]]]])
+    (if (empty? session)
+      [:div]
+      [:div {:class "text-center"}
+       [:br][:br]
+       [:a {:href "/new"}
+        [:button {:class "btn btn-primary" :type "button"} "New Post"]]
+       [:br][:br]])]])
 
 (def modal-test
   [[:div {:class "container"}
@@ -102,6 +119,9 @@
       (= error "username-long") [:div {:class "alert alert-danger"}
                                  [:span {:class "glyphicon glyphicon-exclamation-sign"}]
                                  " Username must be 16 characters long or less"]
+      (= error "username-exist") [:div {:class "alert alert-danger"}
+                                 [:span {:class "glyphicon glyphicon-exclamation-sign"}]
+                                 " Username already exist, please use another username"]
       (= error "password-short") [:div {:class "alert alert-danger"}
                                   [:span {:class "glyphicon glyphicon-exclamation-sign"}]
                                   " Password must be 6 characters long or more"]
@@ -170,7 +190,7 @@
     [:div {:class "text-center"}
      [:div {:class "btn-group"}
       [:a {:href "/new" :class "btn btn-primary"} "New Post"]
-      [:a {:href "/" :class "btn btn-primary"} "Home"]]]]])
+      [:a {:href "/post" :class "btn btn-primary"} "Post List"]]]]])
 
 (def post-failed-content
   [[:div {:class "container-fluid"}
@@ -180,7 +200,7 @@
     [:div {:class "text-center"}
      [:div {:class "btn-group"}
       [:a {:href "/new" :class "btn btn-primary"} "New Post"]
-      [:a {:href "/" :class "btn btn-primary"} "Home"]]]]])
+      [:a {:href "/post" :class "btn btn-primary"} "Post List"]]]]])
 
 (def signup-ok-content
   [[:div {:class "container-fluid"}
@@ -201,7 +221,7 @@
       [:a {:href "/" :class "btn btn-primary"} "Home"]
       [:a {:href "/signup" :class "btn btn-primary"} "Sign Up"]]]]])
 
-(defn view-post-content [id tm title content]
+(defn view-post-content [id tm title content session]
   [[:div {:class "container"}
     [:h5 [:small (str "Post ID: " id)]]
     [:h1 [:strong (str title)]]
@@ -209,11 +229,14 @@
     [:br]
     (str content)
     [:br][:br]
-    [:div {:class "text-center"}
-     [:div {:class "btn-group"}
-      [:a {:href "/" :class "btn btn-primary"} "Home"]
-      [:a {:href (str "/delete/" id) :class "btn btn-primary"} "Delete"]
-      [:a {:href (str "/edit/" id) :class "btn btn-primary"} "Edit"]]]]])
+    (if (empty? session)
+      [:div {:class "text-center"}
+       [:a {:href "/post" :class "btn btn-primary"} "Back"]]
+      [:div {:class "text-center"}
+       [:div {:class "btn-group"}
+        [:a {:href "/post" :class "btn btn-primary"} "Back"]
+        [:a {:href (str "/delete/" id) :class "btn btn-primary"} "Delete"]
+        [:a {:href (str "/edit/" id) :class "btn btn-primary"} "Edit"]]])]])
 
 (defn edit-post-content [id title content]
   [[:div {:align "center"}
