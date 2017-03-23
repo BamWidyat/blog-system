@@ -233,7 +233,7 @@
     [:h5 [:small (str "Posted at " (arrange-time tm))]]
     [:h5 [:small (str "Posted by " username)]]
     [:br]
-    (str content)
+    [:pre (str content)]
     [:br][:br]
     (if (or (empty? session) (not= (session :user) username))
       [:div {:class "text-center"}

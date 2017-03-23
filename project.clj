@@ -21,8 +21,10 @@
                  [com.stuartsierra/component "0.3.2"]
                  [com.datomic/datomic-free "0.9.5561"]
                  [hiccup "1.0.5"]
-                 [buddy/buddy-hashers "1.2.0"]]
+                 [buddy/buddy-hashers "1.2.0"]
+                 [io.rkn/conformity "0.4.0"]]
   :min-lein-version "2.0.0"
+  :jvm-opts ["-Xms256m" "-Xms256m"]
   :resource-paths ["config", "resources"]
   ;; If you use HTTP/2 or ALPN, use the java-agent to pull in the correct alpn-boot dependency
   ;:java-agents [[org.mortbay.jetty.alpn/jetty-alpn-agent "2.0.5"]]
