@@ -27,6 +27,7 @@
    ::http/routes (table/table-routes {} (make-routes datomic mycomponent))
    ::http/resource-path "/public"
    ::http/type :jetty
+   ::http/enable-session {:cookie-attrs {:max-age 3600}}
    ::http/join? false
    ::http/port port})
 

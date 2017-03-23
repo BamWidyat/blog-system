@@ -1,6 +1,10 @@
 (ns blog-system.pedestal.html
   (:require [hiccup.core :as hc]))
 
+(defn arrange-time [t]
+  (let [at (-> t str (clojure.string/split #" "))]
+    (str (at 0) ", " (at 2) " " (at 1) " " (at 5) " - " (at 3) " " (at 4))))
+
 (defn bootstrap []
   (map identity
        [[:meta {:charset "utf-8"}]
@@ -66,7 +70,8 @@
          [:div {:class "col-sm-12"}
           [:h5 [:small (str "Post ID: " (str (post-data 1)))]]
           [:a {:href (str "/post/" (post-data 1))} [:h3 (post-data 2)]]
-          [:h5 [:small (str "Posted at " (post-data 0))]]
+          [:h5 [:small (str "Posted at " (arrange-time (post-data 0)))]]
+          [:h5 [:small (str "Posted by " (post-data 4))]]
           (post-data 3)[:br][:br][:br]])])
     (if (empty? session)
       [:div]
@@ -221,15 +226,16 @@
       [:a {:href "/" :class "btn btn-primary"} "Home"]
       [:a {:href "/signup" :class "btn btn-primary"} "Sign Up"]]]]])
 
-(defn view-post-content [id tm title content session]
+(defn view-post-content [id tm title content username session]
   [[:div {:class "container"}
     [:h5 [:small (str "Post ID: " id)]]
     [:h1 [:strong (str title)]]
-    [:h5 [:small (str "Posted at " tm)]]
+    [:h5 [:small (str "Posted at " (arrange-time tm))]]
+    [:h5 [:small (str "Posted by " username)]]
     [:br]
     (str content)
     [:br][:br]
-    (if (empty? session)
+    (if (or (empty? session) (not= (session :user) username))
       [:div {:class "text-center"}
        [:a {:href "/post" :class "btn btn-primary"} "Back"]]
       [:div {:class "text-center"}

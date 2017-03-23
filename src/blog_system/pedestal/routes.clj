@@ -6,15 +6,10 @@
             [hiccup.core :as hc]
             [blog-system.pedestal.html :as html]
             [io.pedestal.interceptor :refer [interceptor]]
+            [io.pedestal.interceptor.chain :refer [terminate]]
             [io.pedestal.http.ring-middlewares :as p.middlewares]
             [blog-system.database.functions :as db.f]
             [datomic.api :as d]))
-
-(defn about-page
-  [request]
-  (ring-resp/response (format "Clojure %s - served from %s"
-                              (clojure-version)
-                              (route/url-for ::about-page))))
 
 (def home-page
   (interceptor
@@ -43,28 +38,20 @@
    {:name ::new-post
     :enter (fn [context]
              (let [session (-> context :request :session)]
-               (if (empty? session)
-                 (assoc
-                   context :response
-                   (ring-resp/response "You have to login to access this page"))
-                 (assoc
-                   context :response
-                   (ring-resp/response
-                    (html/make-html session "Create New Post" html/new-post-content))))))}))
+               (assoc
+                 context :response
+                 (ring-resp/response
+                  (html/make-html session "Create New Post" html/new-post-content)))))}))
 
 (def user-signup
   (interceptor
    {:name ::user-signup
     :enter (fn [context]
              (let [session (-> context :request :session)]
-               (if (empty? session)
-                 (assoc
-                   context :response
-                   (ring-resp/response
-                    (html/make-html session "New User Sign Up" (html/user-signup-content "No"))))
-                 (assoc
-                   context :response
-                   (ring-resp/response "You already Logged In")))))}))
+               (assoc
+                 context :response
+                 (ring-resp/response
+                  (html/make-html session "New User Sign Up" (html/user-signup-content "No"))))))}))
 
 (def user-signup-check
   (interceptor
@@ -95,14 +82,10 @@
    {:name ::user-login
     :enter (fn [context]
              (let [session (-> context :request :session)]
-               (if (empty? session)
-                 (assoc
-                   context :response
-                   (ring-resp/response
-                    (html/make-html session "User Login" (html/user-login-content "No"))))
-                 (assoc
-                   context :response
-                   (ring-resp/response "You already Logged In")))))}))
+               (assoc
+                 context :response
+                 (ring-resp/response
+                  (html/make-html session "User Login" (html/user-login-content "No"))))))}))
 
 (def user-login-check
   (interceptor
@@ -128,8 +111,9 @@
             content (-> context :request :form-params :content)
             uri (-> context :datomic :uri)
             id (d/squuid)
-            session (-> context :request :session)]
-        (db.f/create-post-database uri id title content)
+            session (-> context :request :session)
+            username (session :user)]
+        (db.f/create-post-database uri id title content username)
         (if (empty? (db.f/take-post-by-id uri id))
           (assoc
           context :response
@@ -152,12 +136,13 @@
             tm (data 0)
             title (data 1)
             content (data 2)
+            username (data 3)
             session (-> context :request :session)]
         (assoc
           context :response
           (ring-resp/response
            (html/make-html
-            session (str "Post :: " title) (html/view-post-content id tm title content session))))))}))
+            session (str "Post :: " title) (html/view-post-content id tm title content username session))))))}))
 
 (def edit-post
   (interceptor
@@ -229,12 +214,38 @@
              (let [session (-> context :request :session)]
                (assoc
                  context :response
-                 (if (empty? session)
-                   (ring-resp/response "You are not logged in")
-                   (-> (ring-resp/redirect "/") (assoc :session {}))))))}))
+                 (-> (ring-resp/redirect "/") (assoc :session {})))))}))
+
+(def session-check
+  (interceptor
+   {:name ::session-check
+    :enter (fn [context]
+             (let [session (-> context :request :session)
+                   page-uri (-> context :request :uri)
+                   postid (-> context :request :path-params :postid)
+                   free-page (or
+                              (= page-uri "/")
+                              (= page-uri "/post")
+                              (= page-uri "/login")
+                              (= page-uri "/signup")
+                              (= page-uri (str "/post/" postid)))
+                   need-logout (or
+                                (= page-uri "/signup")
+                                (= page-uri "/login"))]
+               (if (empty? session)
+                 (if free-page
+                   context
+                   (do
+                     (terminate context)
+                     (assoc context :response (ring-resp/response "login 1st"))))
+                 (if need-logout
+                   (do
+                     (terminate context)
+                     (assoc context :response (ring-resp/response "logout 1st")))
+                   context))))}))
 
 (def middlewares
-  [(p.middlewares/session) (body-params/body-params) http/html-body])
+  [session-check #_(p.middlewares/session) (body-params/body-params) http/html-body])
 
 (def show-session
   (interceptor
@@ -271,7 +282,6 @@
 (def routes
   #{["/" :get [home-page] :route-name :home-page]
     ["/post" :get [post-list] :route-name :post-list]
-    ["/about" :get [about-page] :route-name :about]
     ["/new" :get [new-post] :route-name :new-post]
     ["/signup" :get [user-signup] :route-name :user-signup]
     ["/signup" :post [user-signup-check] :route-name :user-signup-check]
