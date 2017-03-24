@@ -1,9 +1,14 @@
 (ns blog-system.pedestal.html
-  (:require [hiccup.core :as hc]))
+  (:require [hiccup.core :as hc]
+            [garden.core :refer [css]]))
 
 (defn arrange-time [t]
   (let [at (-> t str (clojure.string/split #" "))]
-    (str (at 0) ", " (at 2) " " (at 1) " " (at 5) " - " (at 3) " " (at 4))))
+    (str (at 0) ", " (at 2) " " (at 1) " " (at 5) " at " (->> (at 3) (take 5) clojure.string/join) " " (at 4))))
+
+#_(def pre-wrap (css [:pre {:white-space "pre-wrap, -moz-pre-wrap, -pre-wrap, -o-pre-wrap"
+                          :word-wrap "break-word"
+                          }]))
 
 (defn bootstrap []
   (map identity
@@ -34,9 +39,8 @@
     [:head
      [:title (str title)]
      (bootstrap)]
-    [:body
-     (navpanel session)
-     content]]))
+    (navpanel session)
+    content]))
 
 (defn home-content [session]
    [(if (empty? session)
@@ -68,11 +72,18 @@
       [:div {:class "row"}
        (for [post-data data]
          [:div {:class "col-sm-12"}
-          [:h5 [:small (str "Post ID: " (str (post-data 1)))]]
           [:a {:href (str "/post/" (post-data 1))} [:h3 (post-data 2)]]
-          [:h5 [:small (str "Posted at " (arrange-time (post-data 0)))]]
-          [:h5 [:small (str "Posted by " (post-data 4))]]
-          (post-data 3)[:br][:br][:br]])])
+          [:h5 [:small
+                [:span {:class "glyphicon glyphicon-user"}]
+                (str " by " (post-data 4)) "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                [:span {:class "glyphicon glyphicon-time"}]
+                (str " Posted on " (arrange-time (post-data 0)))]]
+          [:pre {:style
+           "white-space: pre-wrap;
+           white-space: -moz-pre-wrap;
+           white-space: -pre-wrap;
+           white-space: -o-pre-wrap;
+           word-wrap: break-word;"}(post-data 3)][:br][:br][:br]])])
     (if (empty? session)
       [:div]
       [:div {:class "text-center"}
@@ -228,12 +239,20 @@
 
 (defn view-post-content [id tm title content username session]
   [[:div {:class "container"}
-    [:h5 [:small (str "Post ID: " id)]]
     [:h1 [:strong (str title)]]
-    [:h5 [:small (str "Posted at " (arrange-time tm))]]
-    [:h5 [:small (str "Posted by " username)]]
-    [:br]
-    [:pre (str content)]
+    [:hr]
+    [:h5
+     [:span {:class "glyphicon glyphicon-user"}]
+     (str " by " username) "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+     [:span {:class "glyphicon glyphicon-time"}]
+     (str " Posted on " (arrange-time tm))]
+    [:hr]
+    [:pre {:style
+           "white-space: pre-wrap;
+           white-space: -moz-pre-wrap;
+           white-space: -pre-wrap;
+           white-space: -o-pre-wrap;
+           word-wrap: break-word;"} (str content)]
     [:br][:br]
     (if (or (empty? session) (not= (session :user) username))
       [:div {:class "text-center"}

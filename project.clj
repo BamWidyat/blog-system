@@ -22,7 +22,8 @@
                  [com.datomic/datomic-free "0.9.5561"]
                  [hiccup "1.0.5"]
                  [buddy/buddy-hashers "1.2.0"]
-                 [io.rkn/conformity "0.4.0"]]
+                 [io.rkn/conformity "0.4.0"]
+                 [garden "1.3.2"]]
   :min-lein-version "2.0.0"
   :jvm-opts ["-Xms256m" "-Xms256m"]
   :resource-paths ["config", "resources"]
