@@ -256,12 +256,27 @@
     [:br][:br]
     (if (or (empty? session) (not= (session :user) username))
       [:div {:class "text-center"}
-       [:a {:href "/post" :class "btn btn-primary"} "Back"]]
+       [:a {:href "/post" :class "btn btn-primary"} "Back"][:br][:br][:br][:br]]
       [:div {:class "text-center"}
        [:div {:class "btn-group"}
         [:a {:href "/post" :class "btn btn-primary"} "Back"]
         [:a {:href (str "/delete/" id) :class "btn btn-primary"} "Delete"]
-        [:a {:href (str "/edit/" id) :class "btn btn-primary"} "Edit"]]])]])
+        [:a {:href (str "/edit/" id) :class "btn btn-primary"} "Edit"]][:br][:br][:br][:br]])
+    [:div {:class "well"}
+     [:form {:action "/post-comment" :method "post" :id "comment-form"}
+      [:div {:class "form-group"}
+       [:label {:for "comment-name"} "Name"]
+       [:input {:type "text" :class "form-control" :id "comment-name" :name "comment-title" :required ""}]]
+      [:div {:class "form-group"}
+       [:label {:for "comment-text"} "Comment"]
+       [:textarea {:class "form-control" :rows "5" :id "comment-text" :name "comment-text" :required ""}]]
+      [:div {:class "text-center"}
+       [:div {:class "btn-group"}
+        [:button {:type "reset" :class "btn btn-primary"} "Reset"]
+        [:button {:type "submit" :class "btn btn-primary"} "Submit"]]]]]
+     [:div {:class "well"}
+      [:div {:class "text-center"}
+       [:h1 [:strong "No Comment Yet"]]]]]])
 
 (defn edit-post-content [id title content]
   [[:div {:align "center"}
